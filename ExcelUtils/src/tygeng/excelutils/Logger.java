@@ -3,8 +3,9 @@
  */
 package tygeng.excelutils;
 
-import java.io.IOException;
+import java.io.PrintStream;
 
+import java.io.IOException;
 import java.io.File;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -27,7 +28,7 @@ public class Logger {
 
 	public Logger(File logFile) throws IOException {
 		if (logFile == null) {
-			writer = new PrintWriter(new OutputStreamWriter(System.err));
+			writer = new PrintWriter(new OutputStreamWriter(new PrintStream(System.err),"GB2312"));
 		} else {
 
 			writer = new PrintWriter(

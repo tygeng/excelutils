@@ -18,13 +18,14 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @version Oct 31, 2013
  */
 public class EntryPoint {
-	public static final String USAGE = "Usage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...]\n"
+	public static final String USAGE = "Usage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...] [-c <config>]\n"
 			+ "<action> \tthe action to perform. Either 'merge' (m) or 'normalize' (n)\n"
 			+ "<target> \tthe output template file\n"
 			+ "<directory> \tthe directory(ies) containing input excel files\n"
 			+ "<log> \tthe log file\n"
 			+ "<output> \tthe output file. Default to <target>-<action>d\n"
-			+ "<file> \tother input files";
+			+ "<file> \tother input files\n"
+			+ "<config> \ta config file for merge or normalize";
 
 	public static enum Action {
 
@@ -40,6 +41,7 @@ public class EntryPoint {
 			File dirFile = null;
 			File outputFile = null;
 			File logFile = null;
+			File configFile = null;
 
 			Action action = Action.NONE;
 			try {
@@ -74,15 +76,22 @@ public class EntryPoint {
 						}
 					} else if ("-l".equals(args[i])) {
 						i++;
-						logFile = new File(args[i]);
+						String name = args[i];
+						if (!name.endsWith(".txt")) {
+							name = name + ".txt";
+						}
+						logFile = new File(name);
 					} else if ("-o".equals(args[i])) {
 						i++;
 						String name = args[i];
-						if (!name.endsWith("xlsx") || !name.endsWith("xls")) {
+						if (!name.endsWith(".xlsx") || !name.endsWith(".xls")) {
 							name = name + ".xlsx";
 						}
 						outputFile = new File(name);
 
+					} else if ("-c".equals(args[i])) {
+						i++;
+						configFile = new File(args[i]);
 					} else {
 						File f = new File(args[i]);
 						if (f.canRead()
@@ -127,21 +136,27 @@ public class EntryPoint {
 				log = new Logger();
 			}
 			Workbook target = null;
+			Workbook config = null;
 			try {
 				target = WorkbookFactory.create(targetFile);
+				if (configFile != null) {
+					System.err.println("Using config file "
+							+ configFile.getName());
+					config = WorkbookFactory.create(configFile);
+				}
 			} catch (InvalidFormatException e) {
 				System.err
-						.println("Target file is corrupted. Please check you have specified a valid target file.");
+						.println("Target or config file is corrupted. Please check you have specified a valid target file.");
 				return;
 			} catch (IOException e) {
 				System.err
-						.println("Target file is not writable. Please check you have specified a valid target file.");
+						.println("Target or config file is not writable. Please check you have specified a valid target file.");
 				return;
 			}
 			switch (action) {
 			case MERGE:
 				try {
-					Merger m = new Merger(target, log);
+					Merger m = new Merger(target, log, config);
 					int size = inputFiles.size();
 					for (int i = 0; i < size; i++) {
 						File f = inputFiles.get(i);
@@ -177,5 +192,4 @@ public class EntryPoint {
 			}
 		}
 	}
-
 }

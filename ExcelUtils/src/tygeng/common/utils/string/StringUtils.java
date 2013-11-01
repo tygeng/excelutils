@@ -19,7 +19,7 @@ public class StringUtils {
 	}
 	public static String normalize4Hash(String input) {
 		String output = qj2bj(input);
-		return output.replaceAll("[\\s_-]+", "");
+		return output.replaceAll("[\\s_-]+", "").toLowerCase();
 	}
 
 	/**

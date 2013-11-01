@@ -23,7 +23,7 @@ public class MergerTest {
 	public void testMerge() {
 		try {
 			Logger log = new Logger();
-			Merger m = new Merger(Utils.getWorkbook(new File("/home/tony1/tmp/excelutils-test/original.xlsx")), log);
+			Merger m = new Merger(Utils.getWorkbook(new File("/home/tony1/tmp/excelutils-test/original.xlsx")), log, null);
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test1.xlsx"));
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test2.xlsx"));
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test3.xls"));

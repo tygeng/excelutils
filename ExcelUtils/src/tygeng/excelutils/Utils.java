@@ -43,7 +43,7 @@ public class Utils {
 	 * @return
 	 */
 	public static int getDataEndRow(Sheet sheet) {
-		int size = sheet.getLastRowNum();
+		int size = sheet.getLastRowNum()+1;
 		int i;
 		for (i = getDataStartRow(sheet); i < size; i++) {
 			Row currentRow = sheet.getRow(i);
@@ -61,7 +61,7 @@ public class Utils {
 	}
 
 	public static int getNonemptyRowSince(Sheet sheet, int since) {
-		int size = sheet.getLastRowNum();
+		int size = sheet.getLastRowNum()+1;
 		int i;
 		int counter = 0;
 		for (i = since; i < size; i++) {
