@@ -183,7 +183,13 @@ public class EntryPoint {
 				}
 				break;
 			case NORMALIZE:
+				if(config==null) {
+					
+					System.err.println("You need to specify a config file for normalizer.");
+					return;
+				}
 				try {
+
 					Normalizer n = new Normalizer(config, log);
 					n.normalize(target);
 

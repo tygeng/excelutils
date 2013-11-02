@@ -44,7 +44,7 @@ public class Merger {
 	private CellStyle dateStyle;
 	private Logger log;
 	private Workbook config;
-	boolean[] isDate;
+	boolean[][] isDate;
 
 	public Merger(Workbook target, Logger log, Workbook config)
 			throws IllegalSpreadSheetException {
@@ -57,6 +57,7 @@ public class Merger {
 		if (config != null) {
 			configSheet = config.getSheetAt(0);
 		}
+		isDate = new boolean[numSheets][];
 		for (int i = 0; i < numSheets; i++) {
 			Sheet currentSheet = target.getSheetAt(i);
 			if (currentSheet.getSheetName().contains("Guidance")
@@ -66,7 +67,7 @@ public class Merger {
 			sheetIndex.put(normalize4Hash(currentSheet.getSheetName()), i);
 
 			headerMaps.put(normalize4Hash(currentSheet.getSheetName()),
-					getHeaderMap(currentSheet, configSheet));
+					getHeaderMap(currentSheet, configSheet,i));
 		}
 		this.target = target;
 		createHelper = target.getCreationHelper();
@@ -171,8 +172,7 @@ public class Merger {
 					for (int j = startRow; j < endRow; j++) {
 						Row targetRow = targetSheet.createRow(nextRowIndex++);
 						Row currentRow = currentSheet.getRow(j);
-						int numCell = currentRow.getLastCellNum();
-						for (int k = 0; k < numCell; k++) {
+						for (int k = 0; k < headerSize; k++) {
 							if (indexCorrespondence[k] == -1) {
 								continue;
 							}
@@ -192,7 +192,7 @@ public class Merger {
 									targetCell.setCellValue(currentCell
 											.getNumericCellValue());
 
-									if (isDate[indexCorrespondence[k]]) {
+									if (isDate[i][indexCorrespondence[k]]) {
 										targetCell.setCellStyle(dateStyle);
 									}
 									break;
@@ -227,7 +227,7 @@ public class Merger {
 		}
 	}
 
-	private Map<String, Integer> getHeaderMap(Sheet sheet, Sheet config)
+	private Map<String, Integer> getHeaderMap(Sheet sheet, Sheet config, int sheetIndex)
 			throws IllegalSpreadSheetException {
 		Map<String, Integer> result = new HashMap<String, Integer>();
 		Row r2 = sheet.getRow(1);
@@ -240,9 +240,9 @@ public class Merger {
 
 		String r2State = null;
 		int headerSize = r4.getLastCellNum();
-		isDate = new boolean[headerSize];
+		isDate[sheetIndex] = new boolean[headerSize];
 		for (int i = 0; i < headerSize; i++) {
-			isDate[i]= false;
+			isDate[sheetIndex][i]= false;
 			Cell r2Cell = r2.getCell(i);
 			Cell r3Cell = r3.getCell(i);
 			Cell r4Cell = r4.getCell(i);
@@ -258,8 +258,10 @@ public class Merger {
 //			} else {
 //				r4State = "";
 				if(r4State.contains("Date")) {
-					isDate[i]=true;
+					isDate[sheetIndex][i]=true;
 				}
+			}else{
+				break;
 			}
 			if (r3Cell == null || r3Cell.toString().isEmpty()) {
 				result.put(normalize4Hash(r4State), i);
