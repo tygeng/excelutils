@@ -3,8 +3,10 @@
  */
 package tygeng.excelutils;
 
-import org.apache.poi.ss.usermodel.Cell;
+import java.io.FileOutputStream;
 
+import java.io.BufferedOutputStream;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import java.io.IOException;
@@ -77,5 +79,11 @@ public class Utils {
 			}
 		}
 		return counter;
+	}
+	public static void write(Workbook target,File targetFile) throws IOException {
+		BufferedOutputStream out = new BufferedOutputStream(
+				new FileOutputStream(targetFile));
+		target.write(out);
+		out.close();
 	}
 }

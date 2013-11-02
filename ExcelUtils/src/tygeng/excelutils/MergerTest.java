@@ -5,10 +5,10 @@ package tygeng.excelutils;
 
 import static org.junit.Assert.*;
 
+import org.apache.poi.ss.usermodel.Workbook;
+
 import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import tygeng.excelutils.Merger.IllegalSpreadSheetException;
-
 import java.io.File;
 import org.junit.Test;
 
@@ -23,12 +23,13 @@ public class MergerTest {
 	public void testMerge() {
 		try {
 			Logger log = new Logger();
-			Merger m = new Merger(Utils.getWorkbook(new File("/home/tony1/tmp/excelutils-test/original.xlsx")), log, null);
+			Workbook target = Utils.getWorkbook(new File("/home/tony1/tmp/excelutils-test/original.xlsx"));
+			Merger m = new Merger(target,  log, null);
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test1.xlsx"));
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test2.xlsx"));
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test3.xls"));
 			m.merge(new File("/home/tony1/tmp/excelutils-test/test4.xlsx"));
-			m.write(new File("/home/tony1/tmp/excelutils-test/merged.xlsx"));
+			Utils.write(target, new File("/home/tony1/tmp/excelutils-test/merged.xlsx"));
 			log.close();
 
 		} catch (InvalidFormatException e) {

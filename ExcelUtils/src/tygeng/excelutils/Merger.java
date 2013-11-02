@@ -35,18 +35,7 @@ import static tygeng.common.utils.string.StringUtils.normalize4Hash;
  * @version Oct 31, 2013
  */
 public class Merger {
-	public static class IllegalSpreadSheetException extends Exception {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		public IllegalSpreadSheetException(String message) {
-			super(message);
-		}
-
-	}
 
 	private Map<String, Map<String, Integer>> headerMaps;
 	private Map<String, Integer> sheetIndex;
@@ -87,12 +76,7 @@ public class Merger {
 
 	}
 
-	public void write(File targetFile) throws IOException {
-		BufferedOutputStream out = new BufferedOutputStream(
-				new FileOutputStream(targetFile));
-		target.write(out);
-		out.close();
-	}
+
 
 	/**
 	 * Merge a spread sheet file to the target file.

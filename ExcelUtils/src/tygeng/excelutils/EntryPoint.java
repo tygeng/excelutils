@@ -3,8 +3,6 @@
  */
 package tygeng.excelutils;
 
-import tygeng.excelutils.Merger.IllegalSpreadSheetException;
-
 import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -19,7 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class EntryPoint {
 	public static final String USAGE = "Usage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...] [-c <config>]\n"
-			+ "<action> \tthe action to perform. Either 'merge' (m) or 'normalize' (n)\n"
+			+ "<action> \tthe action to perform. Either 'merge' (m) or 'normalize' (n) or 'analyze' (a)\n"
 			+ "<target> \tthe output template file\n"
 			+ "<directory> \tthe directory(ies) containing input excel files\n"
 			+ "<log> \tthe log file\n"
@@ -29,7 +27,7 @@ public class EntryPoint {
 
 	public static enum Action {
 
-		NONE, MERGE, NORMALIZE
+		NONE, MERGE, NORMALIZE, ANALYZE
 	}
 
 	public static void main(String[] args) {
@@ -49,6 +47,8 @@ public class EntryPoint {
 					action = Action.MERGE;
 				} else if ("normalize".equals(args[0]) || "n".equals(args[0])) {
 					action = Action.NORMALIZE;
+				} else if ("analyze".equals(args[0]) || "a".equals(args[0])) {
+					action = Action.ANALYZE;
 				} else {
 					System.err.println("You need to specify <action>.");
 				}
@@ -84,7 +84,7 @@ public class EntryPoint {
 					} else if ("-o".equals(args[i])) {
 						i++;
 						String name = args[i];
-						if (!name.endsWith(".xlsx") || !name.endsWith(".xls")) {
+						if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
 							name = name + ".xlsx";
 						}
 						outputFile = new File(name);
@@ -170,7 +170,7 @@ public class EntryPoint {
 						log.s("======== Done!");
 						log.flush();
 					}
-					m.write(outputFile);
+					Utils.write(target, outputFile);
 				} catch (IllegalSpreadSheetException e) {
 					// e.printStackTrace();
 					System.err
@@ -183,10 +183,30 @@ public class EntryPoint {
 				}
 				break;
 			case NORMALIZE:
+				try {
+					Normalizer n = new Normalizer(config, log);
+					n.normalize(target);
+
+					Utils.write(target, outputFile);
+
+				} catch (IOException e) {
+					System.err.println("Cannot write output file to "
+							+ outputFile.getName() + ".");
+				}
+				break;
+			case ANALYZE:
+				
+				break;
+			case NONE:
+			default:
 				break;
 			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+
 		} finally {
+
 			if (log != null) {
 				log.close();
 			}
