@@ -3,8 +3,9 @@
  */
 package tygeng.excelutils;
 
-import java.io.FileOutputStream;
+import org.apache.poi.ss.usermodel.CellStyle;
 
+import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -21,7 +22,6 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @version Oct 31, 2013
  */
 public class Utils {
-
 	public static Workbook getWorkbook(File wbFile)
 			throws InvalidFormatException, IOException {
 		return WorkbookFactory.create(wbFile);
@@ -85,5 +85,41 @@ public class Utils {
 				new FileOutputStream(targetFile));
 		target.write(out);
 		out.close();
+	}
+	public static String getStringRepresentation(Cell cell) {
+
+		if (cell != null) {
+			switch (cell.getCellType()) {
+			case Cell.CELL_TYPE_STRING:
+				return cell.getStringCellValue();
+
+			case Cell.CELL_TYPE_NUMERIC:
+				return Double.toString(cell.getNumericCellValue());
+			}
+		}
+		return "";
+	}
+	public static void copyCell(Cell targetCell, Cell currentCell, boolean isDate, CellStyle dateStyle) {
+		switch (currentCell.getCellType()) {
+		case Cell.CELL_TYPE_STRING:
+			targetCell.setCellValue(currentCell.getStringCellValue());
+			break;
+		case Cell.CELL_TYPE_NUMERIC:
+			targetCell.setCellValue(currentCell.getNumericCellValue());
+			if (isDate) {
+				targetCell.setCellStyle(dateStyle);
+			}
+
+			break;
+
+		case Cell.CELL_TYPE_BOOLEAN:
+			targetCell.setCellValue(
+					currentCell.getBooleanCellValue());
+			break;
+		case Cell.CELL_TYPE_FORMULA:
+			targetCell.setCellValue(
+					currentCell.getCellFormula());
+			break;
+		}
 	}
 }

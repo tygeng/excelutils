@@ -4,10 +4,7 @@
 package tygeng.excelutils;
 
 import org.apache.poi.ss.usermodel.CellStyle;
-
 import org.apache.poi.ss.usermodel.CreationHelper;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import java.io.File;
@@ -35,29 +32,39 @@ import static tygeng.common.utils.string.StringUtils.normalize4Hash;
  * @version Oct 31, 2013
  */
 public class Merger {
+	private static class ColumnProperty {
+		int index;
+		boolean isDate;
 
+		ColumnProperty(int index, boolean isDate) {
+			this.index = index;
+			this.isDate = isDate;
+		}
+	}
+	private static CellStyle dateStyle;
+	private static CreationHelper createHelper;
 
-	private Map<String, Map<String, Integer>> headerMaps;
+	private Map<String, Map<String, ColumnProperty>> headerMaps;
 	private Map<String, Integer> sheetIndex;
 	private Workbook target;
-	private CreationHelper createHelper;
-	private CellStyle dateStyle;
 	private Logger log;
 	private Workbook config;
-	boolean[][] isDate;
 
 	public Merger(Workbook target, Logger log, Workbook config)
 			throws IllegalSpreadSheetException {
+		createHelper = target.getCreationHelper();
+		dateStyle = target.createCellStyle();
+		dateStyle.setDataFormat(createHelper.createDataFormat().getFormat(
+				"m/d/yyyy"));
 		this.log = log;
 		this.config = config;
 		sheetIndex = new HashMap<String, Integer>();
 		int numSheets = target.getNumberOfSheets();
-		headerMaps = new HashMap<String, Map<String, Integer>>();
+		headerMaps = new HashMap<String, Map<String, ColumnProperty>>();
 		Sheet configSheet = null;
 		if (config != null) {
 			configSheet = config.getSheetAt(0);
 		}
-		isDate = new boolean[numSheets][];
 		for (int i = 0; i < numSheets; i++) {
 			Sheet currentSheet = target.getSheetAt(i);
 			if (currentSheet.getSheetName().contains("Guidance")
@@ -67,17 +74,11 @@ public class Merger {
 			sheetIndex.put(normalize4Hash(currentSheet.getSheetName()), i);
 
 			headerMaps.put(normalize4Hash(currentSheet.getSheetName()),
-					getHeaderMap(currentSheet, configSheet,i));
+					getHeaderMap(currentSheet, configSheet, i));
 		}
 		this.target = target;
-		createHelper = target.getCreationHelper();
-		dateStyle = target.createCellStyle();
-		dateStyle.setDataFormat(createHelper.createDataFormat().getFormat(
-				"m/d/yyyy"));
 
 	}
-
-
 
 	/**
 	 * Merge a spread sheet file to the target file.
@@ -91,6 +92,10 @@ public class Merger {
 			int numSheets = wb.getNumberOfSheets();
 			for (int i = 0; i < numSheets; i++) {
 				Sheet currentSheet = wb.getSheetAt(i);
+				if (currentSheet.getSheetName().contains("Guidance")
+						|| currentSheet.getSheetName().contains("Sample Order")) {
+					continue;
+				}
 				int endRow = Utils.getDataEndRow(currentSheet);
 				int startRow = Utils.getDataStartRow(currentSheet);
 				if (startRow >= endRow) {
@@ -105,7 +110,7 @@ public class Merger {
 				}
 				// System.out.println("Sheet " + i + ":"
 				// + currentSheet.getSheetName());
-				Map<String, Integer> targetSheetHeader = headerMaps
+				Map<String, ColumnProperty> targetSheetHeader = headerMaps
 						.get(normalize4Hash(currentSheet.getSheetName()));
 				if (targetSheetHeader == null) {
 					log.m("Ignore sheet \"" + currentSheet.getSheetName()
@@ -122,9 +127,9 @@ public class Merger {
 					}
 					String r2State = null;
 					int headerSize = r4.getLastCellNum();
-					int[] indexCorrespondence = new int[headerSize];
+					ColumnProperty[] indexCorrespondence = new ColumnProperty[headerSize];
 					for (int j = 0; j < indexCorrespondence.length; j++) {
-						indexCorrespondence[j] = -1;
+						indexCorrespondence[j] = null;
 					}
 					// Match the header index by header content
 					for (int j = 0; j < headerSize; j++) {
@@ -143,18 +148,18 @@ public class Merger {
 						} else {
 							r4State = "";
 						}
-						Integer correspondingTargetIndex;
+						ColumnProperty correspondingTargetColumnProperty;
 
 						if (r3Cell == null || r3Cell.toString().isEmpty()) {
-							correspondingTargetIndex = targetSheetHeader
+							correspondingTargetColumnProperty = targetSheetHeader
 									.get(normalize4Hash(r4State));
 
 						} else {
-							correspondingTargetIndex = targetSheetHeader
+							correspondingTargetColumnProperty = targetSheetHeader
 									.get(normalize4Hash(r2State + r4State));
 						}
-						if (correspondingTargetIndex != null) {
-							indexCorrespondence[j] = correspondingTargetIndex;
+						if (correspondingTargetColumnProperty != null) {
+							indexCorrespondence[j] = correspondingTargetColumnProperty;
 						} else {
 							log.m("Header \"" + r2State + " "
 									+ r3Cell.toString() + " " + r4State
@@ -173,45 +178,15 @@ public class Merger {
 						Row targetRow = targetSheet.createRow(nextRowIndex++);
 						Row currentRow = currentSheet.getRow(j);
 						for (int k = 0; k < headerSize; k++) {
-							if (indexCorrespondence[k] == -1) {
+							if (indexCorrespondence[k] == null) {
 								continue;
 							}
 							Cell currentCell = currentRow.getCell(k);
 							if (currentCell != null) {
-								switch (currentCell.getCellType()) {
-								case Cell.CELL_TYPE_STRING:
-									targetRow
-											.createCell(indexCorrespondence[k])
-											.setCellValue(
-													currentCell
-															.getStringCellValue());
-									break;
-								case Cell.CELL_TYPE_NUMERIC:
-									Cell targetCell = targetRow
-											.createCell(indexCorrespondence[k]);
-									targetCell.setCellValue(currentCell
-											.getNumericCellValue());
-
-									if (isDate[i][indexCorrespondence[k]]) {
-										targetCell.setCellStyle(dateStyle);
-									}
-									break;
-
-								case Cell.CELL_TYPE_BOOLEAN:
-									targetRow
-											.createCell(indexCorrespondence[k])
-											.setCellValue(
-													currentCell
-															.getBooleanCellValue());
-									break;
-								case Cell.CELL_TYPE_FORMULA:
-									targetRow
-											.createCell(indexCorrespondence[k])
-											.setCellValue(
-													currentCell
-															.getCellFormula());
-									break;
-								}
+								Cell targetCell = targetRow
+										.createCell(indexCorrespondence[k].index);
+								boolean isDate = indexCorrespondence[k].isDate;
+								Utils.copyCell(targetCell, currentCell, isDate, dateStyle);
 							}
 						}
 					}
@@ -227,9 +202,9 @@ public class Merger {
 		}
 	}
 
-	private Map<String, Integer> getHeaderMap(Sheet sheet, Sheet config, int sheetIndex)
-			throws IllegalSpreadSheetException {
-		Map<String, Integer> result = new HashMap<String, Integer>();
+ Map<String, ColumnProperty> getHeaderMap(Sheet sheet, Sheet config,
+			int sheetIndex) throws IllegalSpreadSheetException {
+		Map<String, ColumnProperty> result = new HashMap<String, ColumnProperty>();
 		Row r2 = sheet.getRow(1);
 		Row r3 = sheet.getRow(2);
 		Row r4 = sheet.getRow(3);
@@ -240,38 +215,41 @@ public class Merger {
 
 		String r2State = null;
 		int headerSize = r4.getLastCellNum();
-		isDate[sheetIndex] = new boolean[headerSize];
 		for (int i = 0; i < headerSize; i++) {
-			isDate[sheetIndex][i]= false;
 			Cell r2Cell = r2.getCell(i);
 			Cell r3Cell = r3.getCell(i);
 			Cell r4Cell = r4.getCell(i);
 			String r4State = null;
 			if (r2Cell != null) {
-				String r2Contents = getStringRepresentation(r2Cell);
+				String r2Contents = Utils.getStringRepresentation(r2Cell);
 				if (!r2Contents.isEmpty()) {
 					r2State = r2Contents;
 				}
 			}
+			boolean isDate = false;
 			if (r4Cell != null) {
-				r4State = getStringRepresentation(r4Cell);
-//			} else {
-//				r4State = "";
-				if(r4State.contains("Date")) {
-					isDate[sheetIndex][i]=true;
+				r4State = Utils.getStringRepresentation(r4Cell);
+				// } else {
+				// r4State = "";
+				if (r4State != null && r4State.contains("Date")) {
+					isDate = true;
 				}
-			}else{
+
+			} else {
 				break;
 			}
+
 			if (r3Cell == null || r3Cell.toString().isEmpty()) {
-				result.put(normalize4Hash(r4State), i);
+				result.put(normalize4Hash(r4State), new ColumnProperty(i,
+						isDate));
 			} else {
-				result.put(normalize4Hash(r2State + r4State), i);
+				result.put(normalize4Hash(r2State + r4State),
+						new ColumnProperty(i, isDate));
 			}
 
 		}
 		if (config != null) {
-			int size = config.getLastRowNum()+1;
+			int size = config.getLastRowNum() + 1;
 			for (int j = 1; j < size; j++) {
 				Row r = config.getRow(j);
 				if (r != null) {
@@ -279,14 +257,15 @@ public class Merger {
 
 					if (c0 != null) {
 						String c0Content = c0.getStringCellValue();
-						Integer index = result.get(normalize4Hash(c0Content));
-						if (index != null) {
+						ColumnProperty cp = result
+								.get(normalize4Hash(c0Content));
+						if (cp != null) {
 
 							for (int k = 1; k < r.getLastCellNum(); k++) {
 								Cell c = r.getCell(k);
 								if (c != null) {
 									result.put(normalize4Hash(c
-											.getStringCellValue()), index);
+											.getStringCellValue()), cp);
 								}
 							}
 						} else {
@@ -301,17 +280,4 @@ public class Merger {
 		return result;
 	}
 
-	private static String getStringRepresentation(Cell cell) {
-
-		if (cell != null) {
-			switch (cell.getCellType()) {
-			case Cell.CELL_TYPE_STRING:
-				return cell.getStringCellValue();
-
-			case Cell.CELL_TYPE_NUMERIC:
-				return Double.toString(cell.getNumericCellValue());
-			}
-		}
-		return "";
-	}
 }

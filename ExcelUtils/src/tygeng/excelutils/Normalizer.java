@@ -27,13 +27,13 @@ import static tygeng.common.utils.string.StringUtils.normalize4Hash;
 public class Normalizer {
 
 	private Workbook configs;
-	private Map<String, Map<String, String>> dupMaps;
+	private Map<String, Map<String, Cell>> dupMaps;
 	private Logger log;
 
 	public Normalizer(Workbook configs, Logger log) {
 		this.configs = configs;
 		this.log = log;
-		dupMaps = new HashMap<String, Map<String, String>>();
+		dupMaps = new HashMap<String, Map<String, Cell>>();
 		int numSheet = configs.getNumberOfSheets();
 		for (int i = 0; i < numSheet; i++) {
 			Sheet config = configs.getSheetAt(i);
@@ -51,7 +51,7 @@ public class Normalizer {
 			int start = Utils.getDataStartRow(sheet);
 			int end = Utils.getDataEndRow(sheet);
 			Row r4 = sheet.getRow(3);
-			if(r4==null) {
+			if (r4 == null) {
 				continue;
 			}
 			Row[] rows = new Row[end];
@@ -62,8 +62,9 @@ public class Normalizer {
 			if (r4 != null) {
 				for (int j = 0; j < lastColumn; j++) {
 
-					String header = r4.getCell(j).getStringCellValue();
-					Map<String, String> columnMap = dupMaps
+					String header = Utils
+							.getStringRepresentation(r4.getCell(j));
+					Map<String, Cell> columnMap = dupMaps
 							.get(normalize4Hash(header));
 					if (columnMap == null) {
 						continue;
@@ -75,11 +76,13 @@ public class Normalizer {
 							Cell cj = rows[k].getCell(j);
 							if (cj != null) {
 								try {
-									String content = cj.getStringCellValue();
-									String replaced = columnMap
+									String content = Utils
+											.getStringRepresentation(cj);
+									Cell replaced = columnMap
 											.get(normalize4Hash(content));
 									if (replaced != null) {
-										cj.setCellValue(replaced);
+										Utils.copyCell(cj, replaced, false,
+												null);
 									}
 								} catch (Exception e) {
 									log.m("Cell (" + (k + 1) + "," + (j + 1)
@@ -94,9 +97,9 @@ public class Normalizer {
 		}
 	}
 
-	private Map<String, String> getDupMap(Sheet config) {
+	private Map<String, Cell> getDupMap(Sheet config) {
 
-		Map<String, String> result = new HashMap<String, String>();
+		Map<String, Cell> result = new HashMap<String, Cell>();
 		int size = config.getLastRowNum() + 1;
 		for (int j = 1; j < size; j++) {
 			Row r = config.getRow(j);
@@ -105,20 +108,19 @@ public class Normalizer {
 
 				if (c0 != null) {
 					try {
-						String c0Content = c0.getStringCellValue();
-						if (c0Content != null && !c0Content.isEmpty()) {
+						String c0Content = Utils.getStringRepresentation(c0);
+						if (!c0Content.isEmpty()) {
 
 							for (int k = 1; k < r.getLastCellNum(); k++) {
 								Cell c = r.getCell(k);
 								if (c != null) {
 									try {
-										String ckContent = c
-												.getStringCellValue();
-										if (ckContent != null
-												&& !ckContent.isEmpty()) {
+										String ckContent = Utils
+												.getStringRepresentation(c);
+										if (!ckContent.isEmpty()) {
 											result.put(
 													normalize4Hash(ckContent),
-													c0Content);
+													c0);
 										}
 									} catch (Exception e) {
 										log.m("Ignore non string value at ("
