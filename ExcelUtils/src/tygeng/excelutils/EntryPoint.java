@@ -3,6 +3,11 @@
  */
 package tygeng.excelutils;
 
+import java.io.InputStreamReader;
+
+import java.io.Reader;
+import org.apache.xmlbeans.impl.common.ReaderInputStream;
+import java.util.Scanner;
 import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -16,14 +21,16 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @version Oct 31, 2013
  */
 public class EntryPoint {
-	public static final String USAGE = "Usage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...] [-c <config>]\n"
-			+ "<action> \tthe action to perform. Either 'merge' (m) or 'normalize' (n) or 'analyze' (a)\n"
-			+ "<target> \tthe output template file\n"
-			+ "<directory> \tthe directory(ies) containing input excel files\n"
-			+ "<log> \tthe log file\n"
-			+ "<output> \tthe output file. Default to <target>-<action>d\n"
-			+ "<file> \tother input files\n"
-			+ "<config> \ta config file for merge or normalize";
+	public static final String USAGE = 
+			  "\nUsage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...] [-c <config>]\n\n"
+			+ "<action>       the action to perform. Either 'merge' (m) or 'normalize' (n),\n"
+			+ "                 or 'analyze' (a)\n\n"
+			+ "<target>       the output template file\n\n"
+			+ "<directory>    the directory(ies) containing input excel files\n\n"
+			+ "<log>          the log file\n\n"
+			+ "<output>       the output file. Default to <date>-<target>-<action>\n\n"
+			+ "<file>         other input files\n\n"
+			+ "<config>       a config file for merge or normalize\n";
 
 	public static enum Action {
 
@@ -76,17 +83,12 @@ public class EntryPoint {
 						}
 					} else if ("-l".equals(args[i])) {
 						i++;
-						String name = args[i];
-						if (!name.endsWith(".txt")) {
-							name = name + ".txt";
-						}
+						String name = Utils.normalizeFileName(args[i],"txt");
 						logFile = new File(name);
 					} else if ("-o".equals(args[i])) {
 						i++;
-						String name = args[i];
-						if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
-							name = name + ".xlsx";
-						}
+						String name = Utils.normalizeFileName(args[i],"xlsx");
+
 						outputFile = new File(name);
 
 					} else if ("-c".equals(args[i])) {
@@ -109,12 +111,16 @@ public class EntryPoint {
 					throw new Exception();
 				}
 				if (outputFile == null) {
-					String name = targetFile.getName();
-					int dotPos = name.lastIndexOf('.');
-					String baseName = name.substring(0, dotPos);
-					String extension = name.substring(dotPos);
-					outputFile = new File(baseName + "-"
-							+ action.toString().toLowerCase() + "d" + extension);
+					String targetName = targetFile.getName();
+					String outputName = Utils.getOutputName(targetName, action.toString().toLowerCase());
+					outputFile = new File(outputName);
+				}
+				if(outputFile.getAbsolutePath().equals(targetFile.getAbsolutePath())) {
+
+					System.err.println("Output file name is the same as target file name. Abort.");
+					return;
+					
+				
 				}
 			} catch (Exception e) {
 				System.err.println(USAGE);
@@ -183,9 +189,10 @@ public class EntryPoint {
 				}
 				break;
 			case NORMALIZE:
-				if(config==null) {
-					
-					System.err.println("You need to specify a config file for normalizer.");
+				if (config == null) {
+
+					System.err
+							.println("You need to specify a config file for normalizer.");
 					return;
 				}
 				try {
@@ -201,7 +208,7 @@ public class EntryPoint {
 				}
 				break;
 			case ANALYZE:
-				
+
 				break;
 			case NONE:
 			default:

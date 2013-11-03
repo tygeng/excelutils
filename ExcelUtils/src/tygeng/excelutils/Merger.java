@@ -48,7 +48,7 @@ public class Merger {
 	private Map<String, Integer> sheetIndex;
 	private Workbook target;
 	private Logger log;
-	private Workbook config;
+//	private Workbook config;
 
 	public Merger(Workbook target, Logger log, Workbook config)
 			throws IllegalSpreadSheetException {
@@ -57,7 +57,7 @@ public class Merger {
 		dateStyle.setDataFormat(createHelper.createDataFormat().getFormat(
 				"m/d/yyyy"));
 		this.log = log;
-		this.config = config;
+//		this.config = config;
 		sheetIndex = new HashMap<String, Integer>();
 		int numSheets = target.getNumberOfSheets();
 		headerMaps = new HashMap<String, Map<String, ColumnProperty>>();
@@ -113,16 +113,16 @@ public class Merger {
 				Map<String, ColumnProperty> targetSheetHeader = headerMaps
 						.get(normalize4Hash(currentSheet.getSheetName()));
 				if (targetSheetHeader == null) {
-					log.m("Ignore sheet \"" + currentSheet.getSheetName()
-							+ "\" in file \"" + wbFile.getName()
+					log.s("#### Ignore sheet \"" + currentSheet.getSheetName()
+//							+ "\" in file \"" + wbFile.getName()
 							+ "\" because it doesn't exist in the target.");
 				} else {
 					Row r2 = currentSheet.getRow(1);
 					Row r3 = currentSheet.getRow(2);
 					Row r4 = currentSheet.getRow(3);
 					if (r2 == null || r3 == null || r4 == null) {
-						log.s("Ignore sheet \"" + currentSheet.getSheetName()
-								+ "\" in file \"" + wbFile.getName()
+						log.s("#### Ignore sheet \"" + currentSheet.getSheetName()
+//								+ "\" in file \"" + wbFile.getName()
 								+ "\" because its header is less than 3 rows.");
 					}
 					String r2State = null;

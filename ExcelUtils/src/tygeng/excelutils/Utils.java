@@ -3,8 +3,10 @@
  */
 package tygeng.excelutils;
 
-import org.apache.poi.ss.usermodel.CellStyle;
+import java.util.Date;
 
+import java.text.SimpleDateFormat;
+import org.apache.poi.ss.usermodel.CellStyle;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import org.apache.poi.ss.usermodel.Cell;
@@ -38,6 +40,17 @@ public class Utils {
 		return 4;
 	}
 
+	public static String normalizeFileName(String raw, String extension) {
+		if (raw == null) {
+			return null;
+		}
+		if (raw.endsWith("." + extension)) {
+			return raw;
+		} else {
+			return raw + "." + extension;
+		}
+	}
+
 	/**
 	 * Return the row index after the last data row.
 	 * 
@@ -45,7 +58,7 @@ public class Utils {
 	 * @return
 	 */
 	public static int getDataEndRow(Sheet sheet) {
-		int size = sheet.getLastRowNum()+1;
+		int size = sheet.getLastRowNum() + 1;
 		int i;
 		for (i = getDataStartRow(sheet); i < size; i++) {
 			Row currentRow = sheet.getRow(i);
@@ -63,7 +76,7 @@ public class Utils {
 	}
 
 	public static int getNonemptyRowSince(Sheet sheet, int since) {
-		int size = sheet.getLastRowNum()+1;
+		int size = sheet.getLastRowNum() + 1;
 		int i;
 		int counter = 0;
 		for (i = since; i < size; i++) {
@@ -80,12 +93,15 @@ public class Utils {
 		}
 		return counter;
 	}
-	public static void write(Workbook target,File targetFile) throws IOException {
+
+	public static void write(Workbook target, File targetFile)
+			throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(
 				new FileOutputStream(targetFile));
 		target.write(out);
 		out.close();
 	}
+
 	public static String getStringRepresentation(Cell cell) {
 
 		if (cell != null) {
@@ -99,7 +115,9 @@ public class Utils {
 		}
 		return "";
 	}
-	public static void copyCell(Cell targetCell, Cell currentCell, boolean isDate, CellStyle dateStyle) {
+
+	public static void copyCell(Cell targetCell, Cell currentCell,
+			boolean isDate, CellStyle dateStyle) {
 		switch (currentCell.getCellType()) {
 		case Cell.CELL_TYPE_STRING:
 			targetCell.setCellValue(currentCell.getStringCellValue());
@@ -113,13 +131,37 @@ public class Utils {
 			break;
 
 		case Cell.CELL_TYPE_BOOLEAN:
-			targetCell.setCellValue(
-					currentCell.getBooleanCellValue());
+			targetCell.setCellValue(currentCell.getBooleanCellValue());
 			break;
 		case Cell.CELL_TYPE_FORMULA:
-			targetCell.setCellValue(
-					currentCell.getCellFormula());
+			targetCell.setCellValue("="+currentCell.getCellFormula());
 			break;
 		}
+	}
+
+	public static String getOutputName(String target, String postfix) {
+		int dotPos = target.lastIndexOf('.');
+		int dateLength = 18;
+		String ext, base;
+
+		if (dotPos == -1) {
+			ext = "";
+			base = target;
+		} else {
+			base = target.substring(0, dotPos);
+			ext = target.substring(dotPos);
+		}
+		if (!base.endsWith("-" + postfix)) {
+			base += "-" + postfix;
+		}
+		if(base.length()>dateLength) {
+			String mayBeDate = base.substring(0,dateLength);
+			if(mayBeDate.matches("\\d{4}-\\d{2}-\\d{2}-\\d{6}-")) {
+				base = base.substring(dateLength);
+			}
+		}
+		String dateString = new SimpleDateFormat("yyyy-MM-dd-HHmmss-")
+				.format(new Date());
+		return dateString + base + ext;
 	}
 }
