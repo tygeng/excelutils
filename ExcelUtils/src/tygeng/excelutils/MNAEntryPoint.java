@@ -20,7 +20,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @author Tianyu Geng
  * @version Oct 31, 2013
  */
-public class EntryPoint {
+public class MNAEntryPoint {
 	public static final String USAGE = 
 			  "\nUsage: ExcelUtils <action> -t <target> [-d <directory>] [-l <log>] [-o <output>] [<files> ...] [-c <config>]\n\n"
 			+ "<action>       the action to perform. Either 'merge' (m) or 'normalize' (n),\n"
@@ -34,7 +34,7 @@ public class EntryPoint {
 
 	public static enum Action {
 
-		NONE, MERGE, NORMALIZE, ANALYZE
+		NONE, MERGE, NORMALIZE, ANALYZE,
 	}
 
 	public static void main(String[] args) {

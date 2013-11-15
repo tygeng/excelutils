@@ -3,20 +3,15 @@
  */
 package tygeng.excelutils;
 
-import java.util.Date;
-
-import java.text.SimpleDateFormat;
-import org.apache.poi.ss.usermodel.CellStyle;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.BufferedOutputStream;
 import java.io.File;
-import org.apache.poi.ss.usermodel.Workbook;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 
@@ -164,4 +159,43 @@ public class Utils {
 				.format(new Date());
 		return dateString + base + ext;
 	}
+    public static int getFirstOccuranceInRow(Row row, String... keys){
+        int numCell = row.getLastCellNum();
+        for(int i=0;i<numCell;i++){
+            Cell cell = row.getCell(i);
+            if(cell!=null && cell.getCellType()==Cell.CELL_TYPE_STRING ){
+                for(String key: keys){
+                    String cellValue = cell.getStringCellValue();
+                    if(key.equals(cellValue)){
+                        return i;
+                    }
+                }
+
+            }
+        }
+        return -1;
+    }
+    public static boolean isExcelFile(File file) {
+        if(file==null) {
+            return false;
+        }
+        return isExcelFile(file.getName());
+
+    }
+    public static boolean isExcelFile(String fileName) {
+        if(fileName!=null && (fileName.endsWith("xlsx") || fileName.endsWith("xls"))) {
+            return true;
+        }
+        return false;
+    }
+    public static String setExtension(String name, String ext) {
+        if(name==null) {
+            return "untitled."+ext;
+        }
+        if(name.endsWith(ext)){
+            return name;
+        }else{
+            return name+ext;
+        }
+    }
 }

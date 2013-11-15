@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_excelutils" default="compile.module.excelutils">
+  <dirname property="module.excelutils.basedir" file="${ant.file.module_excelutils}"/>
+  
+  <property name="module.jdk.home.excelutils" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.excelutils" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.excelutils" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.excelutils" value="${compiler.args}"/>
+  
+  <property name="excelutils.output.dir" value="${module.excelutils.basedir}/out/production/ExcelUtils"/>
+  <property name="excelutils.testoutput.dir" value="${module.excelutils.basedir}/out/test/ExcelUtils"/>
+  
+  <path id="excelutils.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="excelutils.module.production.classpath">
+    <path refid="${module.jdk.classpath.excelutils}"/>
+    <path refid="library.poi-3.9-20131030.classpath"/>
+    <path refid="library.xbean.classpath"/>
+    <path refid="library.dom4j-1.6.1.classpath"/>
+    <path refid="library.junit-4.11.classpath"/>
+  </path>
+  
+  <path id="excelutils.runtime.production.module.classpath">
+    <pathelement location="${excelutils.output.dir}"/>
+    <path refid="library.poi-3.9-20131030.classpath"/>
+    <path refid="library.xbean.classpath"/>
+    <path refid="library.dom4j-1.6.1.classpath"/>
+    <path refid="library.junit-4.11.classpath"/>
+  </path>
+  
+  <path id="excelutils.module.classpath">
+    <path refid="${module.jdk.classpath.excelutils}"/>
+    <pathelement location="${excelutils.output.dir}"/>
+    <path refid="library.poi-3.9-20131030.classpath"/>
+    <path refid="library.xbean.classpath"/>
+    <path refid="library.dom4j-1.6.1.classpath"/>
+    <path refid="library.junit-4.11.classpath"/>
+  </path>
+  
+  <path id="excelutils.runtime.module.classpath">
+    <pathelement location="${excelutils.testoutput.dir}"/>
+    <pathelement location="${excelutils.output.dir}"/>
+    <path refid="library.poi-3.9-20131030.classpath"/>
+    <path refid="library.xbean.classpath"/>
+    <path refid="library.dom4j-1.6.1.classpath"/>
+    <path refid="library.junit-4.11.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.excelutils">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.excelutils">
+    <patternset refid="excluded.from.module.excelutils"/>
+  </patternset>
+  
+  <path id="excelutils.module.sourcepath">
+    <dirset dir="${module.excelutils.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.excelutils" depends="compile.module.excelutils.production,compile.module.excelutils.tests" description="Compile module ExcelUtils"/>
+  
+  <target name="compile.module.excelutils.production" depends="register.custom.compilers" description="Compile module ExcelUtils; production classes">
+    <mkdir dir="${excelutils.output.dir}"/>
+    <javac2 destdir="${excelutils.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.excelutils}/javac">
+      <compilerarg line="${compiler.args.excelutils}"/>
+      <bootclasspath refid="excelutils.module.bootclasspath"/>
+      <classpath refid="excelutils.module.production.classpath"/>
+      <src refid="excelutils.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.excelutils"/>
+    </javac2>
+    
+    <copy todir="${excelutils.output.dir}">
+      <fileset dir="${module.excelutils.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.excelutils.tests" depends="register.custom.compilers,compile.module.excelutils.production" description="compile module ExcelUtils; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.excelutils" description="cleanup module">
+    <delete dir="${excelutils.output.dir}"/>
+    <delete dir="${excelutils.testoutput.dir}"/>
+  </target>
+</project>

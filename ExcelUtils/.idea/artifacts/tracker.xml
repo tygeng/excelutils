@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="tracker">
+    <output-path>$PROJECT_DIR$/../../../cady/excelutils/track</output-path>
+    <root id="archive" name="ExcelUtils.jar">
+      <element id="module-output" name="ExcelUtils" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/xmlbeans-2.6.0/lib/xbean.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/poi-3.9/build/dist/poi-3.9-20131030.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/poi-3.9/build/dist/poi-ooxml-3.9-20131030.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/poi-3.9/build/dist/poi-excelant-3.9-20131030.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/poi-3.9/build/dist/poi-ooxml-schemas-3.9-20131030.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/dom4j-1.6.1/dom4j-1.6.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/dev/java/junit-4.11.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
